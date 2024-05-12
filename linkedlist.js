@@ -37,6 +37,7 @@ class LinkedList {
 
   size() {
     console.log(this.length);
+    return this.length
   }
 
   head() {
@@ -91,6 +92,49 @@ class LinkedList {
     this.length--;
   }
 
+  contains(data) {
+    if (this.length === 0) {
+        console.log('No elements in array.')
+    }
+    let found = false;
+    let currentNode = this.headNode
+
+    for (let i = 0; i < this.length; i++) {
+        if (data == currentNode.getNodeData()) {
+            console.log('true')
+            found = true;
+            return true;
+        } else {
+            currentNode = currentNode.getNextNode();
+        }
+    }
+
+    if (!found) {
+        console.log('false')
+        return false;
+    }
+  }
+
+  find(data) {
+    let found = false;
+    let currentNode = this.headNode
+
+    for (let i = 0; i < this.length; i++) {
+        if (data == currentNode.getNodeData()) {
+            console.log(i)
+            found = true;
+            return i;
+        } else {
+            currentNode = currentNode.getNextNode();
+        }
+    }
+
+    if (!found) {
+        console.log('Node not found.')
+        return null;
+    }
+  }
+
   toString() {
     let resultString = "";
     let currentNode = this.headNode;
@@ -133,3 +177,4 @@ test.append(6);
 test.toString();
 test.pop()
 test.toString();
+test.contains(8);
