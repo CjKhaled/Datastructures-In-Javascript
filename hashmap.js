@@ -61,13 +61,13 @@ class HashMap {
     // bucket being empty means the key was never created
     const bucket = this.keys[id];
     if (bucket.length === 0 || key.length === 0) {
-        return false;
+      return false;
     }
 
     for (const item of bucket) {
-        if (item.key === key) {
-            return true
-        }
+      if (item.key === key) {
+        return true;
+      }
     }
 
     return false;
@@ -75,27 +75,72 @@ class HashMap {
 
   remove(key) {
     if (this.has(key)) {
-        const id = this.hash(key);
-        const bucket = this.keys[id];
-        bucket.splice(0, 1)
-        this.lengthMap--
-        return true
-        
+      const id = this.hash(key);
+      const bucket = this.keys[id];
+      bucket.splice(0, 1);
+      this.lengthMap--;
+      return true;
     } else return false;
   }
 
   length() {
-    return this.lengthMap
+    return this.lengthMap;
   }
+
+  clear() {
+    this.keys.forEach((bucket) => {
+      bucket.forEach(({ key, value }) => {
+        this.remove(key);
+      });
+    });
+  }
+
+  keyValues() {
+    const result = [];
+    this.keys.forEach((bucket) => {
+      bucket.forEach(({ key, value }) => {
+        result.push(key);
+      });
+    });
+    return result;
+  }
+
+  dataValues() {
+    const result = [];
+    this.keys.forEach((bucket) => {
+      bucket.forEach(({ key, value }) => {
+        result.push(value);
+      });
+    });
+    return result;
+  }
+
+  entries() {
+    const result = [];
+    this.keys.forEach((bucket) => {
+      bucket.forEach(({ key, value }) => {
+        result.push([key, value])
+      });
+    });
+    return result;
+  }
+
 }
 
 const newTable = new HashMap();
 newTable.set("first", "bob");
 newTable.set("last", "phil");
 newTable.set("hi", "chris");
-console.log(newTable.remove('first'))
-console.log(newTable.length())
-console.log(newTable.has('first'))
+newTable.clear();
+newTable.set("first", "bob");
+console.log(newTable.remove("first"));
+newTable.set("first", "richard");
+newTable.set("hi", "fart");
+console.log(newTable.length());
+console.log(newTable.has("first"));
 console.log(newTable.get("first"));
 console.log(newTable.get("last"));
 console.log(newTable.get("hi"));
+console.log(newTable.keyValues())
+console.log(newTable.dataValues())
+console.log(newTable.entries())
