@@ -78,6 +78,15 @@ const prettyPrint = (node, prefix = "", isLeft = true) => {
   }
 };
 
+// a method for our driver script
+const getRandomNumbers = (size) => {
+  const numbers = [];
+  for (let i = 0; i < size; i++) {
+    numbers.push(Math.floor(Math.random() * 100));
+  }
+  return numbers;
+};
+
 // another helper function for our deleteNode method
 const minValue = (node) => {
   let minValue = node.getNodeData();
@@ -214,7 +223,7 @@ class Tree {
     return foundNode;
   }
 
-  levelOrder(callback = [], node = this.rootNode, queue = [this.rootNode]) {
+  levelOrder(node = this.rootNode, callback = [], queue = [this.rootNode]) {
     // base case
     if (node === null) {
       return node;
@@ -242,7 +251,7 @@ class Tree {
     }
 
     // then dequeue
-    this.levelOrder(callback, queue[0], queue);
+    this.levelOrder(queue[0], callback, queue);
 
     // returning array if function isn't provided
     if (typeof callback !== "function") {
@@ -250,7 +259,7 @@ class Tree {
     }
   }
 
-  preOrder(callback = [], node = this.rootNode) {
+  preOrder(node = this.rootNode, callback = []) {
     // base case
     if (node === null) {
       return node;
@@ -263,9 +272,9 @@ class Tree {
     }
 
     // Then we travel left
-    this.preOrder(callback, node.getLeftChild());
+    this.preOrder(node.getLeftChild(), callback);
     // Then we travel right
-    this.preOrder(callback, node.getRightChild());
+    this.preOrder(node.getRightChild(), callback);
 
     // returning array if function isn't provided
     if (typeof callback !== "function") {
@@ -298,17 +307,17 @@ class Tree {
     }
   }
 
-  postOrder(callback = [], node = this.rootNode) {
+  postOrder(node = this.rootNode, callback = []) {
     // base case
     if (node === null) {
       return node;
     }
 
     // in postOrder traversal, we go to the left child first
-    this.postOrder(callback, node.getLeftChild());
+    this.postOrder(node.getLeftChild(), callback);
 
     // then we go to the right child
-    this.postOrder(callback, node.getRightChild());
+    this.postOrder(node.getRightChild(), callback);
 
     // finally we access the data of the node
     if (typeof callback === "function") {
@@ -326,10 +335,10 @@ class Tree {
   height(node = this.rootNode) {
     // The height of a node is the number of edges in the longest path
     // From the node to a leaf node
-    
+
     // base case - we need to return -1 since we add one in later call
     if (node === null) {
-        return -1;
+      return -1;
     }
 
     // To find the height, we need to get the height of the left subtree
@@ -339,7 +348,7 @@ class Tree {
     let rightSubtreeHeight = this.height(node.getRightChild());
 
     // Then get the highest value and add one to it
-    return Math.max(leftSubtreeHeight, rightSubtreeHeight) + 1
+    return Math.max(leftSubtreeHeight, rightSubtreeHeight) + 1;
   }
 
   depth(data, node = this.rootNode, depth = 0) {
@@ -348,18 +357,18 @@ class Tree {
 
     // base case
     if (node === null) {
-        return node
+      return node;
     }
 
     if (node.getNodeData() === depth) {
-        return node
+      return node;
     }
 
     // if the data is greater than the current node, go right to find it
     if (data > node.getNodeData()) {
-       return this.depth(data, node.getLeftChild(), depth + 1)
+      return this.depth(data, node.getLeftChild(), depth + 1);
     } else {
-        return this.depth(data, node.getLeftChild(), depth + 1)
+      return this.depth(data, node.getLeftChild(), depth + 1);
     }
   }
 
@@ -369,24 +378,24 @@ class Tree {
 
     // base case
     if (node === null) {
-        return node
+      return node;
     }
 
     // getting left and right subtree height
     // we add one since we start counting from the roots children
     let leftSubtreeHeight = this.height(node.getLeftChild()) + 1;
     let rightSubtreeHeight = this.height(node.getRightChild()) + 1;
-    
+
     // finally we check the height difference
     if (Math.abs(leftSubtreeHeight - rightSubtreeHeight) <= 1) {
-        return true
-    } else return false
+      return true;
+    } else return false;
   }
 
   rebalance(node = this.rootNode) {
     if (this.isBalanced(node)) {
-        console.log('Tree is already balanced!')
-        return false;
+      console.log("Tree is already balanced!");
+      return false;
     }
     // first, we need a new sorted array from the given bst
     // we use the inOrder function as it saves us from sorting
@@ -395,22 +404,39 @@ class Tree {
     // then we provide it to our buildTree method, which should give us a balanced tree
     const rootNode = this.buildTree(newArray);
     if (!this.isBalanced(node)) {
-        this.rootNode = rootNode;
+      this.rootNode = rootNode;
     }
     return rootNode;
   }
 }
 
-const test = new Tree([1, 2, 3, 4, 5, 6, 7, 8, 9]);
-console.log(test.insert(10));
-console.log(test.insert(11))
-// console.log(test.deleteItem(2));
-// console.log(test.find(1));
-console.log(test.levelOrder());
-console.log(test.preOrder());
-console.log(test.inOrder())
-console.log(test.postOrder())
-console.log(test.height(test.rootNode.getLeftChild()))
-console.log(test.rebalance())
-console.log(test.isBalanced());
-prettyPrint(test.rootNode);
+// Driver script to test out functionality
+const numbers = getRandomNumbers(10); // an array of unsorted random numbers
+const tree = new Tree(numbers); // our object should automatically sort the passed in array and create a tree
+console.log(tree.isBalanced()); // the tree is balanced
+console.log(prettyPrint(tree.rootNode)); // visualizer to confirm
+
+// printing out in all orders
+console.log(tree.levelOrder());
+console.log(tree.preOrder());
+console.log(tree.inOrder());
+console.log(tree.postOrder());
+
+// unbalancing the tree
+const newNumbers = getRandomNumbers(9);
+newNumbers.forEach((number) => {
+  tree.insert(number);
+});
+console.log(tree.isBalanced()); // confirming the tree is unbalanced
+console.log(prettyPrint(tree.rootNode)); // updating visualizer
+
+// balancing the tree and confirming it worked
+tree.rebalance();
+console.log(tree.isBalanced());
+console.log(prettyPrint(tree.rootNode));
+
+// printing out in all orders again
+console.log(tree.levelOrder());
+console.log(tree.preOrder());
+console.log(tree.inOrder());
+console.log(tree.postOrder());
