@@ -1,3 +1,4 @@
+// Sorting algorithm taken from my recursive practice repository
 function mergeSort(array) {
   // we return an array with one element, since it's sorted
   if (array.length === 1) {
@@ -47,15 +48,57 @@ function merge(leftArray, rightArray) {
 }
 
 // removing potential duplicates as they break our tree
-function removeDuplicates(array) {
-    return [...new Set(array)];
-}
+const removeDuplicates = (array) => {
+  return [...new Set(array)];
+};
+
+const removeValue = (array, value) => {
+  return array.filter((element) => element !== value);
+};
+
+// visualizing the tree to help with debugging. Taken from the Odin project curriculum.
+const prettyPrint = (node, prefix = "", isLeft = true) => {
+  if (node === null) {
+    return;
+  }
+  if (node.getRightChild() !== null) {
+    prettyPrint(
+      node.getRightChild(),
+      `${prefix}${isLeft ? "│   " : "    "}`,
+      false
+    );
+  }
+  console.log(`${prefix}${isLeft ? "└── " : "┌── "}${node.data}`);
+  if (node.getLeftChild() !== null) {
+    prettyPrint(
+      node.getLeftChild(),
+      `${prefix}${isLeft ? "    " : "│   "}`,
+      true
+    );
+  }
+};
+
+// another helper function for our deleteNode method
+const minValue = (node) => {
+  let minValue = node.getNodeData();
+  // Everything to the left of the current node should be less than it
+  while (node.getLeftChild() !== null) {
+    minValue = node.getLeftChild().getNodeData();
+    node = node.getLeftChild();
+  }
+
+  return minValue;
+};
 
 class Node {
   constructor(data) {
     this.leftChild = null;
     this.rightChild = null;
     this.data = data;
+  }
+
+  getNodeData() {
+    return this.data;
   }
 
   setLeftChild(node) {
@@ -75,15 +118,16 @@ class Node {
   }
 }
 
-// assuming array is not sorted
+// assuming array is not sorted and has duplicates
 class Tree {
   constructor(array) {
     this.array = removeDuplicates(mergeSort(array));
+    this.rootNode = this.buildTree();
   }
 
   buildTree(start = 0, end = this.array.length - 1) {
     if (start > end) return null;
-    const mid = (start + end) / 2;
+    const mid = Math.floor((start + end) / 2);
     const rootNode = new Node(this.array[mid]);
 
     rootNode.setLeftChild(this.buildTree(start, mid - 1));
@@ -91,7 +135,211 @@ class Tree {
 
     return rootNode;
   }
+
+  insert(value, node = this.rootNode) {
+    // not allowing duplicates
+    if (value in this.array) {
+      console.log("Can not add duplicate values.");
+      return false;
+    }
+
+    // base case - adding a new leaf
+    if (node == null) {
+      node = new Node(value);
+      this.array.push(value);
+      return node;
+    }
+
+    if (node.getNodeData() > value) {
+      node.setLeftChild(this.insert(value, node.getLeftChild()));
+    } else if (node.getNodeData() < value) {
+      node.setRightChild(this.insert(value, node.getRightChild()));
+    }
+
+    // reflecting the changes in our array
+    this.array = removeValue(this.array, value);
+    return node;
+  }
+
+  deleteItem(value, node = this.rootNode) {
+    if (!this.array.includes(value)) {
+      console.log("Data not found in array.");
+      return false;
+    }
+    // base case
+    if (node === null) {
+      return node;
+    }
+
+    // recursing to find the node to be deleted
+    if (value < node.getNodeData()) {
+      node.setLeftChild(this.deleteItem(value, node.getLeftChild()));
+    } else if (value > node.getNodeData()) {
+      node.setRightChild(this.deleteItem(value, node.getRightChild()));
+    } else {
+      // Leaf nodes will return null effectively deleting them
+      // Single child nodes will return their chiildren, effectively deleting themselves
+      if (node.getLeftChild() === null) {
+        return node.getRightChild();
+      } else if (node.getRightChild() === null) {
+        return node.getLeftChild();
+      }
+
+      // For nodes with two children, we get the smallest in the right subtree and delete it
+      node.data = minValue(node.getRightChild());
+      node.setRightChild(
+        this.deleteItem(node.getNodeData(), node.getRightChild())
+      );
+    }
+    return node;
+  }
+
+  find(value, node = this.rootNode) {
+    // base case
+    if (node === null) {
+      return node;
+    }
+
+    if (node.getNodeData() === value) {
+      return node;
+    }
+
+    // Recurse through the tree to find the value
+    let foundNode = this.find(value, node.getLeftChild());
+    if (foundNode === null) {
+      foundNode = this.find(value, node.getRightChild());
+    }
+
+    // return the found node when complete - null means we couldn't find it.
+    return foundNode;
+  }
+
+  levelOrder(callback = [], node = this.rootNode, queue = [this.rootNode]) {
+    // base case
+    if (node === null) {
+      return node;
+    }
+
+    if (queue.length === 0) {
+      return null;
+    }
+
+    queue.shift();
+
+    //   if a callback isn't passed, we will just push values into the array
+    if (typeof callback === "function") {
+      callback(node.getNodeData());
+    } else {
+      callback.push(node.getNodeData());
+    }
+    // add children to the queue
+    if (node.getLeftChild() !== null) {
+      queue.push(node.getLeftChild());
+    }
+
+    if (node.getRightChild() !== null) {
+      queue.push(node.getRightChild());
+    }
+
+    // then dequeue
+    this.levelOrder(callback, queue[0], queue);
+
+    // returning array if function isn't provided
+    if (typeof callback !== "function") {
+      return callback;
+    }
+  }
+
+  preOrder(callback = [], node = this.rootNode) {
+    // base case
+    if (node === null) {
+      return node;
+    }
+    // with preOrder, we first access a nodes data
+    if (typeof callback === "function") {
+      callback(node.getNodeData());
+    } else {
+      callback.push(node.getNodeData());
+    }
+
+    // Then we travel left
+    this.preOrder(callback, node.getLeftChild());
+    // Then we travel right
+    this.preOrder(callback, node.getRightChild());
+
+    // returning array if function isn't provided
+    if (typeof callback !== "function") {
+      return callback;
+    }
+  }
+
+  inOrder(callback = [], node = this.rootNode) {
+    // base case
+    if (node === null) {
+      return node;
+    }
+
+    // with inOrder, the first option is to go left
+    this.inOrder(callback, node.getLeftChild());
+
+    // Then we access a nodes data
+    if (typeof callback === "function") {
+      callback(node.getNodeData());
+    } else {
+      callback.push(node.getNodeData());
+    }
+
+    // then we go right
+    this.inOrder(callback, node.getRightChild());
+
+    // returning array if function isn't provided
+    if (typeof callback !== "function") {
+      return callback;
+    }
+  }
+
+  postOrder(callback = [], node = this.rootNode) {
+    // base case
+    if (node === null) {
+      return node;
+    }
+
+    // in postOrder traversal, we go to the left child first
+    this.postOrder(callback, node.getLeftChild());
+
+    // then we go to the right child
+    this.postOrder(callback, node.getRightChild());
+
+    // finally we access the data of the node
+    if (typeof callback === "function") {
+      callback(node.getNodeData());
+    } else {
+      callback.push(node.getNodeData());
+    }
+
+    // returning array if function isn't provided
+    if (typeof callback !== "function") {
+      return callback;
+    }
+  }
+
+  height(node = this.rootNode) {
+    // I define height as the number of levels after a node
+    // base case
+    if (node === null) {
+        return node;
+    }
+
+    let totalHeight = 1 + this.height(node.getLeftChild())
+  }
 }
 
 const test = new Tree([1, 2, 3, 4, 5, 6, 7, 8, 9]);
-console.log(test.buildTree());
+// console.log(test.insert(10));
+// console.log(test.deleteItem(2));
+// console.log(test.find(1));
+console.log(test.levelOrder());
+console.log(test.preOrder());
+console.log(test.inOrder())
+console.log(test.postOrder())
+prettyPrint(test.rootNode);
