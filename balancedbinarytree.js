@@ -122,16 +122,16 @@ class Node {
 class Tree {
   constructor(array) {
     this.array = removeDuplicates(mergeSort(array));
-    this.rootNode = this.buildTree();
+    this.rootNode = this.buildTree(this.array);
   }
 
-  buildTree(start = 0, end = this.array.length - 1) {
+  buildTree(array, start = 0, end = array.length - 1) {
     if (start > end) return null;
     const mid = Math.floor((start + end) / 2);
-    const rootNode = new Node(this.array[mid]);
+    const rootNode = new Node(array[mid]);
 
-    rootNode.setLeftChild(this.buildTree(start, mid - 1));
-    rootNode.setRightChild(this.buildTree(mid + 1, end));
+    rootNode.setLeftChild(this.buildTree(array, start, mid - 1));
+    rootNode.setRightChild(this.buildTree(array, mid + 1, end));
 
     return rootNode;
   }
@@ -273,14 +273,14 @@ class Tree {
     }
   }
 
-  inOrder(callback = [], node = this.rootNode) {
+  inOrder(node = this.rootNode, callback = []) {
     // base case
     if (node === null) {
       return node;
     }
 
     // with inOrder, the first option is to go left
-    this.inOrder(callback, node.getLeftChild());
+    this.inOrder(node.getLeftChild(), callback);
 
     // Then we access a nodes data
     if (typeof callback === "function") {
@@ -290,7 +290,7 @@ class Tree {
     }
 
     // then we go right
-    this.inOrder(callback, node.getRightChild());
+    this.inOrder(node.getRightChild(), callback);
 
     // returning array if function isn't provided
     if (typeof callback !== "function") {
@@ -324,22 +324,93 @@ class Tree {
   }
 
   height(node = this.rootNode) {
-    // I define height as the number of levels after a node
-    // base case
+    // The height of a node is the number of edges in the longest path
+    // From the node to a leaf node
+    
+    // base case - we need to return -1 since we add one in later call
     if (node === null) {
-        return node;
+        return -1;
     }
 
-    let totalHeight = 1 + this.height(node.getLeftChild())
+    // To find the height, we need to get the height of the left subtree
+    let leftSubtreeHeight = this.height(node.getLeftChild());
+
+    // And the right
+    let rightSubtreeHeight = this.height(node.getRightChild());
+
+    // Then get the highest value and add one to it
+    return Math.max(leftSubtreeHeight, rightSubtreeHeight) + 1
+  }
+
+  depth(data, node = this.rootNode, depth = 0) {
+    // The depth of a node is the number of edges in the path from
+    // the root node to that node
+
+    // base case
+    if (node === null) {
+        return node
+    }
+
+    if (node.getNodeData() === depth) {
+        return node
+    }
+
+    // if the data is greater than the current node, go right to find it
+    if (data > node.getNodeData()) {
+       return this.depth(data, node.getLeftChild(), depth + 1)
+    } else {
+        return this.depth(data, node.getLeftChild(), depth + 1)
+    }
+  }
+
+  isBalanced(node = this.rootNode) {
+    // a tree is balanced if the difference in height between the left/right
+    // subtrees is no more than 1
+
+    // base case
+    if (node === null) {
+        return node
+    }
+
+    // getting left and right subtree height
+    // we add one since we start counting from the roots children
+    let leftSubtreeHeight = this.height(node.getLeftChild()) + 1;
+    let rightSubtreeHeight = this.height(node.getRightChild()) + 1;
+    
+    // finally we check the height difference
+    if (Math.abs(leftSubtreeHeight - rightSubtreeHeight) <= 1) {
+        return true
+    } else return false
+  }
+
+  rebalance(node = this.rootNode) {
+    if (this.isBalanced(node)) {
+        console.log('Tree is already balanced!')
+        return false;
+    }
+    // first, we need a new sorted array from the given bst
+    // we use the inOrder function as it saves us from sorting
+    const newArray = this.inOrder(node);
+
+    // then we provide it to our buildTree method, which should give us a balanced tree
+    const rootNode = this.buildTree(newArray);
+    if (!this.isBalanced(node)) {
+        this.rootNode = rootNode;
+    }
+    return rootNode;
   }
 }
 
 const test = new Tree([1, 2, 3, 4, 5, 6, 7, 8, 9]);
-// console.log(test.insert(10));
+console.log(test.insert(10));
+console.log(test.insert(11))
 // console.log(test.deleteItem(2));
 // console.log(test.find(1));
 console.log(test.levelOrder());
 console.log(test.preOrder());
 console.log(test.inOrder())
 console.log(test.postOrder())
+console.log(test.height(test.rootNode.getLeftChild()))
+console.log(test.rebalance())
+console.log(test.isBalanced());
 prettyPrint(test.rootNode);
