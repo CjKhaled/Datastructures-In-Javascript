@@ -80,28 +80,33 @@ class Board {
     // we will use a set to make sure we don't visit a node more than once
     const visited = new Set();
 
-    visited.add([0, 0])
+    visited.add(JSON.stringify(start))
 
     const queue = [startNode];
     
     // using BFS to find the end node iteratively
     while (queue.length > 0) {
+        debugger
         const currentNode = queue.shift();
-        const [row, col] = currentNode.getCoords();
-
-        // checking if we found the end node
-        if (row === end[0] && col === end[1]) {
-            console.log('found it.')
-        }
+        console.log(currentNode)
+        
 
         // iterating over the available nodes to travel to and adding them to the queue
         const availableMoves = currentNode.getMoves();
         for (const move of availableMoves) {
+            // if we find the end node in the array of available moves, we end our iteration here
+            if (move[0] === end[0] && move[1] === end[1]) {
+                console.log('found it');
+                queue = []
+                break;
+            }
             const nextNode = this.getCellFromCoordinates(move);
             
             // making sure to mark this node as visited
-            if (!visited.has(move)) {
-                visited.add(move);
+            // had to use stringify to make the set work
+            const stringMove = JSON.stringify(move);
+            if (!visited.has(stringMove)) {
+                visited.add(stringMove);
                 queue.push(nextNode);
             }
         }
@@ -113,7 +118,7 @@ class Board {
 }
 
 const board = new Board();
-console.log(board.knightMoves([0, 0], [4, 3]));
+console.log(board.knightMoves([3, 3], [0, 0]));
 
 
 
