@@ -45,6 +45,7 @@ class Node {
 class Board {
   constructor() {
     this.board = this.createBoard();
+    this.adjacencyList = this.createAdjacencyList()
   }
 
   // creating the 8x8 board our knight can travel
@@ -57,6 +58,17 @@ class Board {
     }
 
     return newBoard;
+  }
+
+  createAdjacencyList() {
+    // the node objects will be our nodes, and the edges will be their potential moves
+    const adjacencyList = new Map();
+
+    for (const node of this.board) {
+        adjacencyList.set(node.getCoords(), node.getMoves());
+    }
+
+    return adjacencyList;
   }
 
   getCellFromCoordinates(coords) {
@@ -75,50 +87,14 @@ class Board {
   }
 
   knightMoves(start, end) {
-    const startNode = this.getCellFromCoordinates(start);
-
-    // we will use a set to make sure we don't visit a node more than once
-    const visited = new Set();
-
-    visited.add(JSON.stringify(start))
-
-    const queue = [startNode];
     
-    // using BFS to find the end node iteratively
-    while (queue.length > 0) {
-        debugger
-        const currentNode = queue.shift();
-        console.log(currentNode)
-        
-
-        // iterating over the available nodes to travel to and adding them to the queue
-        const availableMoves = currentNode.getMoves();
-        for (const move of availableMoves) {
-            // if we find the end node in the array of available moves, we end our iteration here
-            if (move[0] === end[0] && move[1] === end[1]) {
-                console.log('found it');
-                queue = []
-                break;
-            }
-            const nextNode = this.getCellFromCoordinates(move);
-            
-            // making sure to mark this node as visited
-            // had to use stringify to make the set work
-            const stringMove = JSON.stringify(move);
-            if (!visited.has(stringMove)) {
-                visited.add(stringMove);
-                queue.push(nextNode);
-            }
-        }
-
-        console.log(visited)
-    }
   }
   
 }
 
 const board = new Board();
-console.log(board.knightMoves([3, 3], [0, 0]));
+board.createAdjacencyList()
+// console.log(board.knightMoves([3, 3], [0, 0]));
 
 
 
