@@ -76,25 +76,45 @@ class Board {
 
   knightMoves(start, end) {
     const startNode = this.getCellFromCoordinates(start);
-    const endNode = this.getCellFromCoordinates(end);
 
-    const queue = [startNode]
+    // we will use a set to make sure we don't visit a node more than once
+    const visited = new Set();
 
+    visited.add([0, 0])
+
+    const queue = [startNode];
+    
+    // using BFS to find the end node iteratively
     while (queue.length > 0) {
         const currentNode = queue.shift();
-        
-        if (currentNode.getCoords()[0] === end[0] && currentNode.getCoords()[1] === end[1]) {
-            return "GOT TO THE END BABY"
+        const [row, col] = currentNode.getCoords();
+
+        // checking if we found the end node
+        if (row === end[0] && col === end[1]) {
+            console.log('found it.')
         }
 
-        for (const move of currentNode.getMoves()) {
-            const nextNode = this.getCellFromCoordinates(move)
-            console.log(nextNode)
+        // iterating over the available nodes to travel to and adding them to the queue
+        const availableMoves = currentNode.getMoves();
+        for (const move of availableMoves) {
+            const nextNode = this.getCellFromCoordinates(move);
+            
+            // making sure to mark this node as visited
+            if (!visited.has(move)) {
+                visited.add(move);
+                queue.push(nextNode);
+            }
         }
+
+        console.log(visited)
     }
   }
+  
 }
 
 const board = new Board();
-board.knightMoves([0, 0], [3, 3])
-console.log(board.knightMoves([3, 3], [3, 3]))
+console.log(board.knightMoves([0, 0], [4, 3]));
+
+
+
+
