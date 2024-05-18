@@ -51,8 +51,8 @@ class Board {
   // creating the 8x8 board our knight can travel
   createBoard() {
     const newBoard = [];
-    for (let i = 0; i < 8; i++) {
-      for (let j = 0; j < 8; j++) {
+    for (let i = 0; i <= 8; i++) {
+      for (let j = 0; j <= 8; j++) {
         newBoard.push(new Node(i, j));
       }
     }
@@ -65,36 +65,53 @@ class Board {
     const adjacencyList = new Map();
 
     for (const node of this.board) {
-        adjacencyList.set(node.getCoords(), node.getMoves());
+        // can't use arrays as keys
+        adjacencyList.set(node.getCoords().toString(), node);
     }
 
     return adjacencyList;
   }
 
   getCellFromCoordinates(coords) {
-    let boardCell = null;
-    for (const cell of this.board) {
-      if (
-        cell.getCoords()[0] === coords[0] &&
-        cell.getCoords()[1] === coords[1]
-      ) {
-        boardCell = cell;
-        break;
-      }
-    }
-
-    return boardCell;
+    return this.adjacencyList.get(coords.toString())
   }
 
   knightMoves(start, end) {
-    
+    const startNode = this.getCellFromCoordinates(start)
+    // we use a set to ensure we don't visit the same node twice
+    const visited = new Set();
+    visited.add(start.toString())
+    const queue = [startNode]
+
+    while (queue.length > 0) {
+        const currentNode = queue.shift();
+        console.log(currentNode)
+
+        // getting all possible moves and adding them to the queue
+        const possibleMoves = currentNode.getMoves();
+        
+        for (const move of possibleMoves) {
+            if (move[0] === end[0] && move[1] === end[1]) {
+                console.log('found it!')
+                visited.add(move.toString())
+                console.log(visited)
+                return
+            }
+            // we will only enqueue if we haven't visited that node
+            // using a string since arrays don't work in sets
+            if (!visited.has(move.toString())) {
+                queue.push(this.getCellFromCoordinates(move));
+                visited.add(move.toString())
+            }
+        }
+    }
+
   }
   
 }
 
 const board = new Board();
-board.createAdjacencyList()
-// console.log(board.knightMoves([3, 3], [0, 0]));
+console.log(board.knightMoves([0, 0], [7, 7]));
 
 
 
