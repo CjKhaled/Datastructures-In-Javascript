@@ -45,7 +45,7 @@ class Node {
 class Board {
   constructor() {
     this.board = this.createBoard();
-    this.adjacencyList = this.createAdjacencyList()
+    this.adjacencyList = this.createAdjacencyList();
   }
 
   // creating the 8x8 board our knight can travel
@@ -65,54 +65,60 @@ class Board {
     const adjacencyList = new Map();
 
     for (const node of this.board) {
-        // can't use arrays as keys
-        adjacencyList.set(node.getCoords().toString(), node);
+      // can't use arrays as keys
+      adjacencyList.set(node.getCoords().toString(), node);
     }
 
     return adjacencyList;
   }
 
   getCellFromCoordinates(coords) {
-    return this.adjacencyList.get(coords.toString())
+    return this.adjacencyList.get(coords.toString());
   }
 
   knightMoves(start, end) {
-    const startNode = this.getCellFromCoordinates(start)
+    const startNode = this.getCellFromCoordinates(start);
     // we use a set to ensure we don't visit the same node twice
     const visited = new Set();
-    visited.add(start.toString())
-    const queue = [startNode]
+    visited.add(start.toString());
+    const queue = [startNode];
+
+    // we use a map to log the path we are taking for each node, starting with the start node
+    const paths = new Map();
+    paths.set(startNode.getCoords().toString(), [start]);
 
     while (queue.length > 0) {
-        const currentNode = queue.shift();
-        console.log(currentNode)
+      debugger;
+      const currentNode = queue.shift();
+      // keeping track of our current path
+      const currentPath = paths.get(currentNode.getCoords().toString());
 
-        // getting all possible moves and adding them to the queue
-        const possibleMoves = currentNode.getMoves();
-        
-        for (const move of possibleMoves) {
-            if (move[0] === end[0] && move[1] === end[1]) {
-                console.log('found it!')
-                visited.add(move.toString())
-                console.log(visited)
-                return
-            }
-            // we will only enqueue if we haven't visited that node
-            // using a string since arrays don't work in sets
-            if (!visited.has(move.toString())) {
-                queue.push(this.getCellFromCoordinates(move));
-                visited.add(move.toString())
-            }
+      // getting all possible moves and adding them to the queue
+      const possibleMoves = currentNode.getMoves();
+
+      for (const move of possibleMoves) {
+        if (move[0] === end[0] && move[1] === end[1]) {
+            // once we find the move, our path is complete
+            // the path with the end parameter as the key is the correct path
+          paths.set(move.toString(), currentPath.concat([move]));
+          const correctPath = paths.get(end.toString());
+          return `You made it in ${correctPath.length - 1} moves! Here is your path: ` + correctPath.join(' -> ')
         }
+        // we will only enqueue if we haven't visited that node
+        // using a string since arrays don't work in sets
+        if (!visited.has(move.toString())) {
+          queue.push(this.getCellFromCoordinates(move));
+          visited.add(move.toString());
+          // adding
+          paths.set(move.toString(), currentPath.concat([move]));
+        }
+      }
     }
-
   }
-  
 }
 
 const board = new Board();
+console.log(board.knightMoves([0, 0], [3, 3]));
+console.log(board.knightMoves([3, 3], [0, 0]));
+console.log(board.knightMoves([3, 3], [4, 3]));
 console.log(board.knightMoves([0, 0], [7, 7]));
-
-
-
-
